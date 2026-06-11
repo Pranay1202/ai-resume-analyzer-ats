@@ -1,12 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useMemo, useRef, useState, type DragEvent, type ChangeEvent } from "react";
-import * as pdfjsLib from "pdfjs-dist";
 import { supabase } from "@/integrations/supabase/client";
 
-// Configure worker to CDN matching installed version
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
-
 export const Route = createFileRoute("/")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "AI Resume Analyzer — Know your ATS score in seconds" },
