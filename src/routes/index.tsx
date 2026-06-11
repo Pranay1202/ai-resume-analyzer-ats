@@ -91,13 +91,15 @@ function Index() {
     setResumeText("");
     setWordCount(0);
     try {
+      const pdfjsLib = await import("pdfjs-dist");
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
       const buf = await f.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
       let full = "";
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
-        const strings = content.items.map((it) => ("str" in it ? (it as { str: string }).str : "")).join(" ");
+        const strings = content.items.map((it: { str?: string }) => (typeof it.str === "string" ? it.str : "")).join(" ");
         full += strings + "\n";
       }
       const trimmed = full.trim();
