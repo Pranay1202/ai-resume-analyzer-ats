@@ -99,7 +99,7 @@ function Index() {
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
-        const strings = content.items.map((it: { str?: string }) => (typeof it.str === "string" ? it.str : "")).join(" ");
+        const strings = content.items.map((it) => ("str" in it ? it.str : "")).join(" ");
         full += strings + "\n";
       }
       const trimmed = full.trim();
