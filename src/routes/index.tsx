@@ -201,18 +201,23 @@ function Index() {
                 onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                 onDragLeave={() => setDragOver(false)}
                 onDrop={onDrop}
-                onClick={() => inputRef.current?.click()}
-                className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed bg-white px-6 py-10 text-center transition ${
+                className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed bg-white px-6 py-10 text-center transition ${
                   dragOver ? "border-indigo-500 bg-indigo-50/40" : "border-gray-300 hover:border-indigo-400"
                 }`}
               >
                 <svg className="h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 16a4 4 0 01-.88-7.9 5 5 0 019.74-1.1A4.5 4.5 0 1116 16M12 12v9m0-9l-3 3m3-3l3 3" />
                 </svg>
-                <p className="mt-3 text-sm text-gray-600">
-                  <span className="font-semibold" style={{ color: "#4F46E5" }}>Click to upload</span> or drag and drop
-                </p>
-                <p className="mt-1 text-xs text-gray-400">PDF up to ~10MB</p>
+                <p className="mt-3 text-sm text-gray-600">Drag and drop your PDF here, or</p>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
+                  className="mt-3 inline-flex items-center justify-center rounded-lg px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+                  style={{ background: "#4F46E5" }}
+                >
+                  Click to upload
+                </button>
+                <p className="mt-2 text-xs text-gray-400">PDF up to ~10MB</p>
               </div>
               <input ref={inputRef} type="file" accept="application/pdf,.pdf" className="hidden" onChange={onSelect} />
               {file && (
