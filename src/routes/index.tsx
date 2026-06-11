@@ -223,7 +223,6 @@ function Index() {
                 <p className="mt-1 text-xs text-gray-400">PDF up to ~10MB</p>
               </div>
               <input ref={inputRef} type="file" accept="application/pdf,.pdf" className="hidden" onChange={onSelect} />
-              </div>
               {file && (
                 <div className="mt-3 flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
                   <span className="truncate text-gray-700">📄 {file.name}</span>
