@@ -71,9 +71,7 @@ function MetricBox({ label, value }: { label: string; value: number }) {
 
 function Index() {
   const [file, setFile] = useState<File | null>(null);
-  const [resumeText, setResumeText] = useState<string>("");
-  const [wordCount, setWordCount] = useState<number>(0);
-  const [extracting, setExtracting] = useState(false);
+  const [resumeBase64, setResumeBase64] = useState<string>("");
   const [jdText, setJdText] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
@@ -83,102 +81,60 @@ function Index() {
   const inputRef = useRef<HTMLInputElement>(null);
   const analyzerRef = useRef<HTMLDivElement>(null);
 
-  const canAnalyze = resumeText.trim().length > 0 && jdText.trim().length > 0 && !loading;
+  // kept for UI compatibility (word count / extracting badges)
+  const extracting = false;
+  const resumeText = resumeBase64 ? "ready" : "";
+  const wordCount = 0;
 
-  const extractPdf = useCallback(async (f: File) => {
-    setExtracting(true);
-    setError("");
-    setResumeText("");
-    setWordCount(0);
-    try {
-      const pdfjsLib: any = await import("pdfjs-dist");
-      pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-      const arrayBuffer = await f.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let text = "";
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        text += content.items.map((item: any) => ("str" in item ? item.str : "")).join(" ") + "\n";
-      }
-      const trimmed = text.trim();
-      if (trimmed.length < 20) throw new Error("empty");
-      setResumeText(trimmed);
-      setWordCount(trimmed.split(/\s+/).filter(Boolean).length);
-    } catch {
-      setError("Could not read PDF. Please make sure it is a text-based PDF, not a scanned image.");
-      setFile(null);
-    } finally {
-      setExtracting(false);
-    }
-  }, []);
+  const canAnalyze = !!resumeBase64 && jdText.trim().length > 0 && !loading;
 
-  const handleFile = (f: File | undefined | null) => {
+  const readFileAsBase64 = (f: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(f);
+    });
+
+  const handleFile = async (f: File | undefined | null) => {
     if (!f) return;
     if (f.type !== "application/pdf" && !f.name.toLowerCase().endsWith(".pdf")) {
       setError("Please upload a PDF file.");
       return;
     }
+    setError("");
     setFile(f);
-    void extractPdf(f);
+    setResumeBase64("");
+    try {
+      const dataUrl = await readFileAsBase64(f);
+      setResumeBase64(dataUrl);
+    } catch {
+      setError("Could not read file.");
+      setFile(null);
+    }
   };
 
   const onDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragOver(false);
-    handleFile(e.dataTransfer.files?.[0]);
+    void handleFile(e.dataTransfer.files?.[0]);
   };
 
-  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-
-    setFile(file);
-    setExtracting(true);
-    setResumeText("");
-    setError("");
-
-    try {
-      const fileReader = new FileReader();
-      fileReader.onload = async (event) => {
-        try {
-          const typedArray = new Uint8Array(event.target?.result as ArrayBuffer);
-          const pdfjsLib = await import("pdfjs-dist");
-          pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-          const pdf = await pdfjsLib.getDocument(typedArray as any).promise;
-          let fullText = "";
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const content = await page.getTextContent();
-            fullText += content.items.map((item: any) => ("str" in item ? item.str : "")).join(" ") + "\n";
-          }
-          setResumeText(fullText);
-          setWordCount(fullText.trim().split(/\s+/).filter(Boolean).length);
-          setExtracting(false);
-        } catch (err) {
-          setError("PDF parsing failed. Try a different PDF file.");
-          setExtracting(false);
-        }
-      };
-      fileReader.readAsArrayBuffer(file);
-    } catch (err) {
-      setError("Could not read file.");
-      setExtracting(false);
-    }
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    void handleFile(e.target.files && e.target.files[0]);
   };
 
   const scrollToAnalyzer = () => analyzerRef.current?.scrollIntoView({ behavior: "smooth" });
 
   const analyze = async () => {
     setError("");
-    if (!file || !resumeText) { setError("Please upload your resume PDF"); return; }
+    if (!file || !resumeBase64) { setError("Please upload your resume PDF"); return; }
     if (!jdText.trim()) { setError("Please paste a job description"); return; }
     setLoading(true);
     setResult(null);
     try {
       const { data, error: fnError } = await supabase.functions.invoke("analyze-resume", {
-        body: { resumeText, jdText },
+        body: { resumeFile: resumeBase64, jdText },
       });
       if (fnError) throw fnError;
       if (!data || typeof data !== "object" || typeof (data as AnalysisResult).overall_score !== "number") {
@@ -192,6 +148,7 @@ function Index() {
       setLoading(false);
     }
   };
+
 
   const copyBullet = async (text: string, idx: number) => {
     try {
