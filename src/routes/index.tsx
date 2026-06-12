@@ -130,7 +130,48 @@ function Index() {
     handleFile(e.dataTransfer.files?.[0]);
   };
 
-  const onSelect = (e: ChangeEvent<HTMLInputElement>) => handleFile(e.target.files?.[0]);
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files && e.target.files[0];
+
+    if (!file) return;
+
+    setFile(file);
+    setExtracting(true);
+    setResumeText("");
+
+    try {
+      const pdfjsLib = await import("pdfjs-dist");
+
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+      const arrayBuffer = await file.arrayBuffer();
+
+      const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) });
+
+      const pdf = await loadingTask.promise;
+
+      let fullText = "";
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+
+        const content = await page.getTextContent();
+
+        const pageText = content.items
+          .map((item: any) => ("str" in item ? item.str : ""))
+          .join(" ");
+
+        fullText += pageText + "\n";
+      }
+
+      setResumeText(fullText);
+      setWordCount(fullText.trim().split(/\s+/).filter(Boolean).length);
+      setExtracting(false);
+    } catch (err) {
+      setExtracting(false);
+      setError("Could not read PDF. Please make sure it is a text-based PDF, not a scanned image.");
+    }
+  };
 
   const scrollToAnalyzer = () => analyzerRef.current?.scrollIntoView({ behavior: "smooth" });
 
@@ -228,7 +269,7 @@ function Index() {
                 </button>
                 <p className="mt-2 text-xs text-gray-400">PDF up to ~10MB</p>
               </div>
-              <input ref={inputRef} type="file" accept="application/pdf,.pdf" className="hidden" onChange={onSelect} />
+              <input ref={inputRef} type="file" accept="application/pdf,.pdf" className="hidden" onChange={handleFileChange} />
               {file && (
                 <div className="mt-3 flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
                   <span className="truncate text-gray-700">📄 {file.name}</span>
