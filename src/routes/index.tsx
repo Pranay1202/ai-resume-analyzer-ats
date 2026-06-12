@@ -91,13 +91,19 @@ function Index() {
     setResumeText("");
     setWordCount(0);
     try {
-      const { extractText } = await import("unpdf");
-      const buf = await f.arrayBuffer();
-      const { text } = await extractText(new Uint8Array(buf), { mergePages: true });
-      const trimmed = (text ?? "").trim();
-      if (trimmed.length < 20) {
-        throw new Error("empty");
+      const pdfjsLib: any = await import("pdfjs-dist");
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      const arrayBuffer = await f.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let text = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map((item: any) => ("str" in item ? item.str : "")).join(" ") + "\n";
       }
+      const trimmed = text.trim();
+      if (trimmed.length < 20) throw new Error("empty");
       setResumeText(trimmed);
       setWordCount(trimmed.split(/\s+/).filter(Boolean).length);
     } catch {
