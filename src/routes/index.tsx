@@ -135,7 +135,6 @@ function Index() {
     if (!file) return;
 
     setFile(file);
-    setFileName(file.name);
     setExtracting(true);
     setResumeText("");
     setError("");
