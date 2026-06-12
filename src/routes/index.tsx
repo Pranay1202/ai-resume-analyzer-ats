@@ -204,10 +204,13 @@ function Index() {
             <div>
               <label className="mb-2 block text-sm font-semibold text-gray-700">Upload your resume (PDF)</label>
               <div
+                onClick={() => inputRef.current?.click()}
                 onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                 onDragLeave={() => setDragOver(false)}
                 onDrop={onDrop}
-                className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed bg-white px-6 py-10 text-center transition ${
+                role="button"
+                tabIndex={0}
+                className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed bg-white px-6 py-10 text-center transition ${
                   dragOver ? "border-indigo-500 bg-indigo-50/40" : "border-gray-300 hover:border-indigo-400"
                 }`}
               >
