@@ -167,16 +167,31 @@ function Index() {
   return (
     <div className="min-h-screen bg-white text-gray-900" style={{ fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
       {/* Hero */}
-      <section className="px-6 py-20 sm:py-28">
-        <div className="mx-auto max-w-4xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-medium text-gray-600">
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#4F46E5" }} />
+      <section className="relative overflow-hidden px-6 py-20 sm:py-28">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `linear-gradient(rgba(15,12,41,0.85), rgba(48,43,99,0.90)), url('https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=1920&q=80')`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            zIndex: 0,
+          }}
+        />
+        {/* Floating emojis */}
+        <span className="absolute top-12 left-[10%] text-[80px] opacity-15 select-none pointer-events-none" style={{ zIndex: 1 }}>📄</span>
+        <span className="absolute top-24 right-[12%] text-[80px] opacity-15 select-none pointer-events-none" style={{ zIndex: 1 }}>📊</span>
+        <span className="absolute bottom-16 left-[15%] text-[80px] opacity-15 select-none pointer-events-none" style={{ zIndex: 1 }}>✅</span>
+        <span className="absolute bottom-20 right-[8%] text-[80px] opacity-15 select-none pointer-events-none" style={{ zIndex: 1 }}>🎯</span>
+
+        <div className="relative mx-auto max-w-4xl text-center" style={{ zIndex: 2 }}>
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-gray-200">
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#818CF8" }} />
             AI-powered resume analysis
           </div>
-          <h1 className="mt-6 text-4xl font-bold tracking-tight sm:text-6xl">
+          <h1 className="mt-6 text-4xl font-bold tracking-tight text-white sm:text-6xl">
             Know your ATS score in seconds
           </h1>
-          <p className="mt-5 text-lg text-gray-600 sm:text-xl">
+          <p className="mt-5 text-lg text-gray-200 sm:text-xl">
             Upload your resume, paste a job description, get an AI-powered match score with fixes
           </p>
           <button
@@ -190,12 +205,21 @@ function Index() {
       </section>
 
       {/* Analyzer */}
-      <section ref={analyzerRef} className="border-t border-gray-100 bg-gray-50/50 px-6 py-16">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 md:grid-cols-2">
+      <section
+        ref={analyzerRef}
+        className="relative border-t border-white/10 px-6 py-16"
+        style={{
+          backgroundImage: `linear-gradient(rgba(15,12,41,0.88), rgba(30,27,60,0.92)), url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1920&q=80')`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          zIndex: 0,
+        }}
+      >
+        <div className="relative mx-auto grid max-w-6xl grid-cols-1 gap-8 md:grid-cols-2" style={{ zIndex: 1 }}>
           {/* Left: inputs */}
           <div className="space-y-6">
             <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">Upload your resume (PDF)</label>
+              <label className="mb-2 block text-sm font-semibold text-gray-100">Upload your resume (PDF)</label>
               <div
                 onClick={() => inputRef.current?.click()}
                 onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -235,7 +259,7 @@ function Index() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">Paste the job description</label>
+              <label className="mb-2 block text-sm font-semibold text-gray-100">Paste the job description</label>
               <textarea
                 value={jdText}
                 onChange={(e) => setJdText(e.target.value)}
@@ -263,7 +287,7 @@ function Index() {
             </button>
 
             {loading && (
-              <p className="text-center text-sm text-gray-500">Analyzing your resume...</p>
+              <p className="text-center text-sm text-gray-300">Analyzing your resume...</p>
             )}
 
             {error && (
@@ -274,110 +298,131 @@ function Index() {
           </div>
 
           {/* Right: results */}
-          <div>
-            {result ? (
-              <div className="space-y-6 animate-in fade-in duration-700" style={{ animation: "fadeIn 0.6s ease-out" }}>
-                <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                  <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">Overall ATS Score</h3>
-                  <ScoreGauge score={result.overall_score} />
-                </div>
+          <div
+            className="relative rounded-2xl p-6"
+            style={{
+              backgroundImage: `linear-gradient(rgba(20,18,45,0.85), rgba(35,32,65,0.90)), url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1920&q=80')`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              zIndex: 0,
+            }}
+          >
+            <div className="relative" style={{ zIndex: 1 }}>
+              {result ? (
+                <div className="space-y-6 animate-in fade-in duration-700" style={{ animation: "fadeIn 0.6s ease-out" }}>
+                  <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                    <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">Overall ATS Score</h3>
+                    <ScoreGauge score={result.overall_score} />
+                  </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <MetricBox label="Skills" value={result.section_scores.skills} />
-                  <MetricBox label="Experience" value={result.section_scores.experience} />
-                  <MetricBox label="Education" value={result.section_scores.education} />
-                  <MetricBox label="Summary" value={result.section_scores.summary} />
-                </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <MetricBox label="Skills" value={result.section_scores.skills} />
+                    <MetricBox label="Experience" value={result.section_scores.experience} />
+                    <MetricBox label="Education" value={result.section_scores.education} />
+                    <MetricBox label="Summary" value={result.section_scores.summary} />
+                  </div>
 
-                <div className="rounded-2xl border border-gray-200 bg-white p-6">
-                  <h3 className="mb-3 font-semibold text-gray-900">Matched keywords</h3>
-                  {result.matched_keywords.length === 0 ? (
-                    <p className="text-sm text-gray-500">No matched keywords found.</p>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {result.matched_keywords.map((k, i) => (
-                        <span key={i}
-                          className={`rounded-full px-3 py-1 text-xs font-medium ${pillImportance[k.importance]}`}
-                          style={{ background: "#D1FAE5", color: "#065F46" }}>
-                          {k.keyword}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="rounded-2xl border border-gray-200 bg-white p-6">
-                  <h3 className="mb-3 font-semibold text-gray-900">Missing keywords</h3>
-                  {result.missing_keywords.length === 0 ? (
-                    <p className="text-sm text-gray-500">Nothing critical is missing.</p>
-                  ) : (
-                    <ul className="space-y-3">
-                      {result.missing_keywords.map((k, i) => (
-                        <li key={i}>
-                          <span
-                            className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${pillImportance[k.importance]}`}
-                            style={{ background: "#FEE2E2", color: "#991B1B" }}>
+                  <div className="rounded-2xl border border-gray-200 bg-white p-6">
+                    <h3 className="mb-3 font-semibold text-gray-900">Matched keywords</h3>
+                    {result.matched_keywords.length === 0 ? (
+                      <p className="text-sm text-gray-500">No matched keywords found.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {result.matched_keywords.map((k, i) => (
+                          <span key={i}
+                            className={`rounded-full px-3 py-1 text-xs font-medium ${pillImportance[k.importance]}`}
+                            style={{ background: "#D1FAE5", color: "#065F46" }}>
                             {k.keyword}
                           </span>
-                          <p className="mt-1 text-xs text-gray-500">{k.why}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <div className="rounded-2xl border border-gray-200 bg-white p-6">
-                  <h3 className="mb-3 font-semibold text-gray-900">Suggested bullet rewrites</h3>
-                  {result.weak_bullets.length === 0 ? (
-                    <p className="text-sm text-gray-500">Your bullets look strong.</p>
-                  ) : (
-                    <ul className="space-y-4">
-                      {result.weak_bullets.map((b, i) => (
-                        <li key={i} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
-                          <p className="text-sm text-gray-500 line-through">{b.original}</p>
-                          <p className="mt-2 text-sm font-medium" style={{ color: "#065F46" }}>{b.rewritten}</p>
-                          <button
-                            onClick={() => copyBullet(b.rewritten, i)}
-                            className="mt-2 rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                          >
-                            {copiedIdx === i ? "Copied!" : "Copy"}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <div className="rounded-2xl border border-gray-200 bg-white p-6">
-                  <h3 className="mb-3 font-semibold text-gray-900">Top 3 actions</h3>
-                  <ol className="space-y-2">
-                    {result.top_3_actions.map((a, i) => (
-                      <li key={i} className="flex gap-3 text-sm">
-                        <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: "#4F46E5" }}>
-                          {i + 1}
-                        </span>
-                        <span className="font-semibold text-gray-900">{a}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              </div>
-            ) : (
-              <div className="flex h-full min-h-[400px] items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-white/60 p-8 text-center">
-                <div>
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50">
-                    <svg className="h-6 w-6" fill="none" stroke="#4F46E5" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                    </svg>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <p className="text-sm font-medium text-gray-700">Your results will appear here</p>
-                  <p className="mt-1 text-xs text-gray-500">Upload a resume and paste a job description to begin.</p>
+
+                  <div className="rounded-2xl border border-gray-200 bg-white p-6">
+                    <h3 className="mb-3 font-semibold text-gray-900">Missing keywords</h3>
+                    {result.missing_keywords.length === 0 ? (
+                      <p className="text-sm text-gray-500">Nothing critical is missing.</p>
+                    ) : (
+                      <ul className="space-y-3">
+                        {result.missing_keywords.map((k, i) => (
+                          <li key={i}>
+                            <span
+                              className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${pillImportance[k.importance]}`}
+                              style={{ background: "#FEE2E2", color: "#991B1B" }}>
+                              {k.keyword}
+                            </span>
+                            <p className="mt-1 text-xs text-gray-500">{k.why}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  <div className="rounded-2xl border border-gray-200 bg-white p-6">
+                    <h3 className="mb-3 font-semibold text-gray-900">Suggested bullet rewrites</h3>
+                    {result.weak_bullets.length === 0 ? (
+                      <p className="text-sm text-gray-500">Your bullets look strong.</p>
+                    ) : (
+                      <ul className="space-y-4">
+                        {result.weak_bullets.map((b, i) => (
+                          <li key={i} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                            <p className="text-sm text-gray-500 line-through">{b.original}</p>
+                            <p className="mt-2 text-sm font-medium" style={{ color: "#065F46" }}>{b.rewritten}</p>
+                            <button
+                              onClick={() => copyBullet(b.rewritten, i)}
+                              className="mt-2 rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                            >
+                              {copiedIdx === i ? "Copied!" : "Copy"}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  <div className="rounded-2xl border border-gray-200 bg-white p-6">
+                    <h3 className="mb-3 font-semibold text-gray-900">Top 3 actions</h3>
+                    <ol className="space-y-2">
+                      {result.top_3_actions.map((a, i) => (
+                        <li key={i} className="flex gap-3 text-sm">
+                          <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: "#4F46E5" }}>
+                            {i + 1}
+                          </span>
+                          <span className="font-semibold text-gray-900">{a}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="flex h-full min-h-[400px] items-center justify-center rounded-2xl border-2 border-dashed border-white/20 bg-white/10 p-8 text-center backdrop-blur-sm">
+                  <div>
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50">
+                      <svg className="h-6 w-6" fill="none" stroke="#4F46E5" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                      </svg>
+                    </div>
+                    <p className="text-sm font-medium text-white">Your results will appear here</p>
+                    <p className="mt-1 text-xs text-gray-300">Upload a resume and paste a job description to begin.</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
+
+      {/* Gemini AI Badge */}
+      <div className="fixed bottom-4 right-4 z-50 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-medium shadow-lg backdrop-blur-sm">
+        <span className="text-[#4285F4]">G</span>
+        <span className="text-[#EA4335]">o</span>
+        <span className="text-[#FBBC05]">o</span>
+        <span className="text-[#4285F4]">g</span>
+        <span className="text-[#34A853]">l</span>
+        <span className="text-[#EA4335]">e</span>
+        <span className="ml-1 text-gray-600">Gemini AI</span>
+      </div>
 
       <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`}</style>
     </div>
