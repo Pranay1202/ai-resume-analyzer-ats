@@ -1,2 +1,11 @@
-npm install
-npm run dev
+# AI Resume Analyzer
+AI-powered resume analyzer built with React, 
+Supabase and Google Gemini AI.
+
+## Tech Stack
+- React + TypeScript + Tailwind CSS
+- Supabase Edge Functions
+- Google Gemini 1.5 Flash
+
+## Live Demo
+Coming soon
