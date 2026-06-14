@@ -123,6 +123,7 @@ function Index() {
     setLoading(true);
     setResult(null);
     try {
+      console.log("[supabase] VITE_SUPABASE_URL:", import.meta.env.VITE_SUPABASE_URL);
       console.log("[analyze-resume] invoking with jdText length:", jdText.length, "resumeBase64 length:", resumeBase64.length);
       const { data, error: fnError } = await supabase.functions.invoke("analyze-resume", {
         body: { resumeFile: resumeBase64, jdText },
