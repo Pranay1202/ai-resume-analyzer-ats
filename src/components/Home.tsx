@@ -123,21 +123,35 @@ function Index() {
     setLoading(true);
     setResult(null);
     try {
+      console.log("[analyze-resume] invoking with jdText length:", jdText.length, "resumeBase64 length:", resumeBase64.length);
       const { data, error: fnError } = await supabase.functions.invoke("analyze-resume", {
         body: { resumeFile: resumeBase64, jdText },
       });
-      if (fnError) throw fnError;
+      console.log("[analyze-resume] response:", { data, fnError });
+      if (fnError) {
+        const ctx: any = (fnError as any).context;
+        let serverMsg = "";
+        try {
+          if (ctx && typeof ctx.text === "function") serverMsg = await ctx.text();
+        } catch { /* ignore */ }
+        throw new Error(`${fnError.message}${serverMsg ? ` — ${serverMsg}` : ""}`);
+      }
+      if (data && typeof (data as any).error === "string") {
+        throw new Error((data as any).error);
+      }
       if (!data || typeof data !== "object" || typeof (data as AnalysisResult).overall_score !== "number") {
         setError("Could not parse AI response. Please try again.");
         return;
       }
       setResult(data as AnalysisResult);
-    } catch {
-      setError("Analysis failed. Please try again.");
+    } catch (err) {
+      console.error("[analyze-resume] failed:", err);
+      setError(`Analysis failed: ${(err as Error).message || "Unknown error"}`);
     } finally {
       setLoading(false);
     }
   };
+
 
 
   const copyBullet = async (text: string, idx: number) => {
