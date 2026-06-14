@@ -1,19 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useMemo, useRef, useState, type DragEvent, type ChangeEvent } from "react";
+import { useMemo, useRef, useState, type DragEvent, type ChangeEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/")({
-  ssr: false,
-  head: () => ({
-    meta: [
-      { title: "AI Resume Analyzer — Know your ATS score in seconds" },
-      { name: "description", content: "Upload your resume, paste a job description, get an AI-powered ATS match score with fixes." },
-      { property: "og:title", content: "AI Resume Analyzer — Know your ATS score in seconds" },
-      { property: "og:description", content: "Upload your resume, paste a job description, get an AI-powered ATS match score with fixes." },
-    ],
-  }),
-  component: Index,
-});
+export default function Home() {
+  return <Index />;
+}
 
 interface MatchedKeyword { keyword: string; importance: "high" | "medium" | "low" }
 interface MissingKeyword { keyword: string; importance: "high" | "medium" | "low"; why: string }
