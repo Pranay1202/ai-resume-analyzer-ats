@@ -1,12 +1,7 @@
 import { useMemo, useRef, useState, type DragEvent, type ChangeEvent } from "react";
-import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL as string,
-  (import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) as string,
-);
-
-console.log(import.meta.env.VITE_SUPABASE_URL);
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 export default function Home() {
   return <Index />;
