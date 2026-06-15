@@ -1,7 +1,6 @@
 import { useMemo, useRef, useState, type DragEvent, type ChangeEvent } from "react";
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY as string;
 
 export default function Home() {
   return <Index />;
@@ -122,7 +121,7 @@ function Index() {
     setError("");
     if (!file || !resumeBase64) { setError("Please upload your resume PDF"); return; }
     if (!jdText.trim()) { setError("Please paste a job description"); return; }
-    if (!GEMINI_API_KEY) { setError("Missing VITE_GEMINI_API_KEY"); return; }
+    if (!GROQ_API_KEY) { setError("Missing VITE_GROQ_API_KEY"); return; }
     setLoading(true);
     setResult(null);
     try {
@@ -130,33 +129,34 @@ function Index() {
       const prompt = `You are an expert ATS resume reviewer. Analyze the attached resume PDF against the job description below and return ONLY valid minified JSON (no markdown, no code fences) with this exact shape:
 {"overall_score":number 0-100,"section_scores":{"skills":number,"experience":number,"education":number,"summary":number},"matched_keywords":[{"keyword":string,"importance":"high"|"medium"|"low"}],"missing_keywords":[{"keyword":string,"importance":"high"|"medium"|"low","why":string}],"weak_bullets":[{"original":string,"rewritten":string}],"top_3_actions":[string,string,string]}
 
+RESUME (base64 PDF):
+${base64Data}
+
 JOB DESCRIPTION:
 ${jdText}`;
 
-      const body = {
-        contents: [{
-          parts: [
-            { inline_data: { mime_type: "application/pdf", data: base64Data } },
-            { text: prompt },
-          ],
-        }],
-        generationConfig: { responseMimeType: "application/json", temperature: 0.2 },
-      };
-
-      console.log("[gemini] calling API");
-      const res = await fetch(GEMINI_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+      console.log("[groq] calling API");
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.3,
+          max_tokens: 1800
+        })
       });
-      const json = await res.json();
-      console.log("[gemini] response:", json);
-      if (!res.ok) {
-        setError(json?.error?.message || `Gemini API error ${res.status}`);
+      const json = await response.json();
+      console.log("[groq] response:", json);
+      if (!response.ok) {
+        setError(json?.error?.message || `Groq API error ${response.status}`);
         return;
       }
-      const text: string | undefined = json?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).filter(Boolean).join("") ;
-      if (!text) { setError("Empty response from Gemini"); return; }
+      const text: string | undefined = json?.choices?.[0]?.message?.content;
+      if (!text) { setError("Empty response from Groq"); return; }
       let parsed: AnalysisResult;
       try {
         parsed = JSON.parse(text);
