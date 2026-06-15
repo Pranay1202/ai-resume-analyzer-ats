@@ -1,5 +1,12 @@
 import { useMemo, useRef, useState, type DragEvent, type ChangeEvent } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL as string,
+  (import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) as string,
+);
+
+console.log(import.meta.env.VITE_SUPABASE_URL);
 
 export default function Home() {
   return <Index />;
@@ -73,7 +80,7 @@ function Index() {
 
   // kept for UI compatibility (word count / extracting badges)
   const extracting = false;
-  const resumeText = resumeBase64 ? "ready" : "";
+  const resumeText = resumeBase64;
   const wordCount = 0;
 
   const canAnalyze = !!resumeBase64 && jdText.trim().length > 0 && !loading;
@@ -124,21 +131,18 @@ function Index() {
     setResult(null);
     try {
       console.log("[supabase] VITE_SUPABASE_URL:", import.meta.env.VITE_SUPABASE_URL);
-      console.log("[analyze-resume] invoking with jdText length:", jdText.length, "resumeBase64 length:", resumeBase64.length);
-      const { data, error: fnError } = await supabase.functions.invoke("analyze-resume", {
-        body: { resumeFile: resumeBase64, jdText },
+      console.log("[analyze-resume] invoking with jdText length:", jdText.length, "resumeText length:", resumeText.length);
+      const { data, error } = await supabase.functions.invoke("analyze-resume", {
+        body: { resumeText, jdText },
       });
-      console.log("[analyze-resume] response:", { data, fnError });
-      if (fnError) {
-        const ctx: any = (fnError as any).context;
-        let serverMsg = "";
-        try {
-          if (ctx && typeof ctx.text === "function") serverMsg = await ctx.text();
-        } catch { /* ignore */ }
-        throw new Error(`${fnError.message}${serverMsg ? ` — ${serverMsg}` : ""}`);
+      console.log("[analyze-resume] response:", { data, error });
+      if (error) {
+        setError(error.message);
+        return;
       }
       if (data && typeof (data as any).error === "string") {
-        throw new Error((data as any).error);
+        setError((data as any).error);
+        return;
       }
       if (!data || typeof data !== "object" || typeof (data as AnalysisResult).overall_score !== "number") {
         setError("Could not parse AI response. Please try again.");
@@ -147,7 +151,7 @@ function Index() {
       setResult(data as AnalysisResult);
     } catch (err) {
       console.error("[analyze-resume] failed:", err);
-      setError(`Analysis failed: ${(err as Error).message || "Unknown error"}`);
+      setError((err as Error).message || "Unknown error");
     } finally {
       setLoading(false);
     }
