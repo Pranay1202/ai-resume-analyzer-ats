@@ -52,9 +52,15 @@ serve(async (req) => {
 
     // Build user message content. If a PDF file is provided, attach it as inline file data
     // so Gemini can extract the text directly from the PDF.
+    const fileLikeResumeData = typeof resumeText === 'string' && (
+      resumeText.startsWith('data:application/pdf;base64,') ||
+      resumeText.startsWith('JVBERi0')
+    )
+
     let userContent: any
-    if (resumeFile) {
-      const base64Data = (resumeFile as string).split(',')[1] || (resumeFile as string)
+    if (resumeFile || fileLikeResumeData) {
+      const rawResumeFile = (resumeFile as string) || (resumeText as string)
+      const base64Data = rawResumeFile.split(',')[1] || rawResumeFile
       userContent = [
         { type: 'text', text: `${PROMPT_INSTRUCTIONS}\n\nJOB DESCRIPTION:\n${jdText}` },
         {
