@@ -122,30 +122,56 @@ function Index() {
     setError("");
     if (!file || !resumeBase64) { setError("Please upload your resume PDF"); return; }
     if (!jdText.trim()) { setError("Please paste a job description"); return; }
+    if (!GEMINI_API_KEY) { setError("Missing VITE_GEMINI_API_KEY"); return; }
     setLoading(true);
     setResult(null);
     try {
-      console.log("[supabase] VITE_SUPABASE_URL:", import.meta.env.VITE_SUPABASE_URL);
-      console.log("[analyze-resume] invoking with jdText length:", jdText.length, "resumeText length:", resumeText.length);
-      const { data, error } = await supabase.functions.invoke("analyze-resume", {
-        body: { resumeText, jdText },
+      const base64Data = resumeBase64.includes(",") ? resumeBase64.split(",")[1] : resumeBase64;
+      const prompt = `You are an expert ATS resume reviewer. Analyze the attached resume PDF against the job description below and return ONLY valid minified JSON (no markdown, no code fences) with this exact shape:
+{"overall_score":number 0-100,"section_scores":{"skills":number,"experience":number,"education":number,"summary":number},"matched_keywords":[{"keyword":string,"importance":"high"|"medium"|"low"}],"missing_keywords":[{"keyword":string,"importance":"high"|"medium"|"low","why":string}],"weak_bullets":[{"original":string,"rewritten":string}],"top_3_actions":[string,string,string]}
+
+JOB DESCRIPTION:
+${jdText}`;
+
+      const body = {
+        contents: [{
+          parts: [
+            { inline_data: { mime_type: "application/pdf", data: base64Data } },
+            { text: prompt },
+          ],
+        }],
+        generationConfig: { responseMimeType: "application/json", temperature: 0.2 },
+      };
+
+      console.log("[gemini] calling API");
+      const res = await fetch(GEMINI_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
-      console.log("[analyze-resume] response:", { data, error });
-      if (error) {
-        setError(error.message);
+      const json = await res.json();
+      console.log("[gemini] response:", json);
+      if (!res.ok) {
+        setError(json?.error?.message || `Gemini API error ${res.status}`);
         return;
       }
-      if (data && typeof (data as any).error === "string") {
-        setError((data as any).error);
+      const text: string | undefined = json?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).filter(Boolean).join("") ;
+      if (!text) { setError("Empty response from Gemini"); return; }
+      let parsed: AnalysisResult;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        const m = text.match(/\{[\s\S]*\}/);
+        if (!m) { setError("Could not parse AI response."); return; }
+        parsed = JSON.parse(m[0]);
+      }
+      if (typeof parsed.overall_score !== "number") {
+        setError("Invalid AI response shape.");
         return;
       }
-      if (!data || typeof data !== "object" || typeof (data as AnalysisResult).overall_score !== "number") {
-        setError("Could not parse AI response. Please try again.");
-        return;
-      }
-      setResult(data as AnalysisResult);
+      setResult(parsed);
     } catch (err) {
-      console.error("[analyze-resume] failed:", err);
+      console.error("[gemini] failed:", err);
       setError((err as Error).message || "Unknown error");
     } finally {
       setLoading(false);
