@@ -1,11 +1,21 @@
-# AI Resume Analyzer
-AI-powered resume analyzer built with React, 
-Supabase and Google Gemini AI.
+ AI Resume Analyzer
 
-## Tech Stack
+AI-powered resume analyzer that scores your resume against 
+any job description and suggests improvements instantly.
+
+ Features
+- PDF resume upload with text extraction
+- ATS keyword match scoring
+- Missing keyword detection  
+- AI-powered bullet point rewriter
+- Top 3 actionable improvements
+
+ Tech Stack
 - React + TypeScript + Tailwind CSS
-- Supabase Edge Functions
-- Google Gemini 1.5 Flash
+- Groq LLaMA AI API
+- Supabase
+- Deployed on Netlify
 
-## Live Link :
+ Live Demo
 https://airesumeanalyzerats.netlify.app/
+
