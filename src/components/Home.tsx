@@ -126,6 +126,8 @@ function Index() {
     setResult(null);
     try {
       const base64Data = resumeBase64.includes(",") ? resumeBase64.split(",")[1] : resumeBase64;
+      const truncatedResume = resumeText.slice(0, 2000);
+      const truncatedJD = jdText.slice(0, 1000);
       const prompt = `You are an expert ATS resume reviewer. Analyze the attached resume PDF against the job description below and return ONLY valid minified JSON (no markdown, no code fences) with this exact shape:
 {"overall_score":number 0-100,"section_scores":{"skills":number,"experience":number,"education":number,"summary":number},"matched_keywords":[{"keyword":string,"importance":"high"|"medium"|"low"}],"missing_keywords":[{"keyword":string,"importance":"high"|"medium"|"low","why":string}],"weak_bullets":[{"original":string,"rewritten":string}],"top_3_actions":[string,string,string]}
 
