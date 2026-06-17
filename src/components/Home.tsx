@@ -132,10 +132,10 @@ function Index() {
 {"overall_score":number 0-100,"section_scores":{"skills":number,"experience":number,"education":number,"summary":number},"matched_keywords":[{"keyword":string,"importance":"high"|"medium"|"low"}],"missing_keywords":[{"keyword":string,"importance":"high"|"medium"|"low","why":string}],"weak_bullets":[{"original":string,"rewritten":string}],"top_3_actions":[string,string,string]}
 
 RESUME (base64 PDF):
-${base64Data}
+${truncatedResume}
 
 JOB DESCRIPTION:
-${jdText}`;
+${truncatedJD}`;
 
       console.log("[groq] calling API");
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
