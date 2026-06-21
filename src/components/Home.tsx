@@ -120,7 +120,6 @@ function Index() {
   const analyze = async () => {
     setError("");
     if (!file || !resumeBase64) { setError("Please upload your resume PDF"); return; }
-    if (!jdText.trim()) { setError("Please paste a job description"); return; }
     if (!GROQ_API_KEY) { setError("Missing VITE_GROQ_API_KEY"); return; }
     setLoading(true);
     setResult(null);
