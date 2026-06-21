@@ -77,7 +77,7 @@ function Index() {
   const resumeText = resumeBase64;
   const wordCount = 0;
 
-  const canAnalyze = !!resumeBase64 && jdText.trim().length > 0 && !loading;
+  const canAnalyze = !!resumeBase64 && !loading;
 
   const readFileAsBase64 = (f: File): Promise<string> =>
     new Promise((resolve, reject) => {
