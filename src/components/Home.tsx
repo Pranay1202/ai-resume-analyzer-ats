@@ -77,7 +77,7 @@ function Index() {
   const resumeText = resumeBase64;
   const wordCount = 0;
 
-  const canAnalyze = !!resumeBase64 && jdText.trim().length > 0 && !loading;
+  const canAnalyze = !!resumeBase64 && !loading;
 
   const readFileAsBase64 = (f: File): Promise<string> =>
     new Promise((resolve, reject) => {
@@ -120,7 +120,6 @@ function Index() {
   const analyze = async () => {
     setError("");
     if (!file || !resumeBase64) { setError("Please upload your resume PDF"); return; }
-    if (!jdText.trim()) { setError("Please paste a job description"); return; }
     if (!GROQ_API_KEY) { setError("Missing VITE_GROQ_API_KEY"); return; }
     setLoading(true);
     setResult(null);
@@ -128,14 +127,27 @@ function Index() {
       const base64Data = resumeBase64.includes(",") ? resumeBase64.split(",")[1] : resumeBase64;
       const truncatedResume = resumeText.slice(0, 2000);
       const truncatedJD = jdText.slice(0, 1000);
-      const prompt = `You are an expert ATS resume reviewer. Analyze the attached resume PDF against the job description below and return ONLY valid minified JSON (no markdown, no code fences) with this exact shape:
+      const hasJD = jdText.trim().length > 0;
+      const prompt = hasJD
+        ? `You are an expert ATS resume reviewer. Analyze the attached resume PDF against the job description below and return ONLY valid minified JSON (no markdown, no code fences) with this exact shape:
 {"overall_score":number 0-100,"section_scores":{"skills":number,"experience":number,"education":number,"summary":number},"matched_keywords":[{"keyword":string,"importance":"high"|"medium"|"low"}],"missing_keywords":[{"keyword":string,"importance":"high"|"medium"|"low","why":string}],"weak_bullets":[{"original":string,"rewritten":string}],"top_3_actions":[string,string,string]}
+
+Be consistent and deterministic. For the same resume and job description, always return the same score. Round overall_score and all section_scores to the nearest multiple of 5.
 
 RESUME (base64 PDF):
 ${truncatedResume}
 
 JOB DESCRIPTION:
-${truncatedJD}`;
+${truncatedJD}`
+        : `You are an expert ATS resume reviewer. Analyze this resume on general ATS-friendliness and resume quality best practices. Score it based on: clear quantified achievements, proper formatting, relevant keywords for the candidate's field, strong action verbs, and overall professional presentation. Return ONLY valid minified JSON (no markdown, no code fences) with this exact shape:
+{"overall_score":number 0-100,"section_scores":{"skills":number,"experience":number,"education":number,"summary":number},"matched_keywords":[{"keyword":string,"importance":"high"|"medium"|"low"}],"missing_keywords":[{"keyword":string,"importance":"high"|"medium"|"low","why":string}],"weak_bullets":[{"original":string,"rewritten":string}],"top_3_actions":[string,string,string]}
+
+Be consistent and deterministic. For the same resume and job description, always return the same score. Round overall_score and all section_scores to the nearest multiple of 5.
+
+Set missing_keywords to general resume improvement suggestions instead of job-specific keywords.
+
+RESUME (base64 PDF):
+${truncatedResume}`;
 
       console.log("[groq] calling API");
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -147,7 +159,7 @@ ${truncatedJD}`;
         body: JSON.stringify({
           model: 'llama-3.1-8b-instant',
           messages: [{ role: 'user', content: prompt }],
-          temperature: 0.3,
+          temperature: 0,
           max_tokens: 1800
         })
       });
@@ -291,11 +303,11 @@ ${truncatedJD}`;
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-100">Paste the job description</label>
+              <label className="mb-2 block text-sm font-semibold text-gray-100">Paste a job description (optional)</label>
               <textarea
                 value={jdText}
                 onChange={(e) => setJdText(e.target.value)}
-                placeholder="Copy and paste the full job description here..."
+                placeholder="Optional — paste a job description for a targeted score, or leave blank for a general resume review"
                 className="w-full rounded-xl border border-gray-300 bg-white p-4 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                 style={{ minHeight: "200px" }}
               />
