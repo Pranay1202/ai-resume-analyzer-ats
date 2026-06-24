@@ -118,6 +118,25 @@ function Index() {
 
   const scrollToAnalyzer = () => analyzerRef.current?.scrollIntoView({ behavior: "smooth" });
 
+  function cleanJsonResponse(rawText: string) {
+    let cleaned = rawText
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim();
+
+    // Remove trailing commas before closing brackets/braces
+    cleaned = cleaned.replace(/,(\s*[\]}])/g, '$1');
+
+    // Find the first { and last } to extract just the JSON object
+    const firstBrace = cleaned.indexOf('{');
+    const lastBrace = cleaned.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1) {
+      cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+    }
+
+    return cleaned;
+  }
+
   const analyze = async () => {
     setError("");
     if (!file || !resumeBase64) { setError("Please upload your resume PDF"); return; }
