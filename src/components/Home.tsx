@@ -192,13 +192,14 @@ ${truncatedResume}`;
       }
       const text: string | undefined = json?.choices?.[0]?.message?.content;
       if (!text) { setError("Empty response from Groq"); return; }
+      const cleanedText = cleanJsonResponse(text);
       let parsed: AnalysisResult;
       try {
-        parsed = JSON.parse(text);
+        parsed = JSON.parse(cleanedText);
       } catch {
-        const m = text.match(/\{[\s\S]*\}/);
-        if (!m) { setError("Could not parse AI response."); return; }
-        parsed = JSON.parse(m[0]);
+        setJsonError(true);
+        setError("The AI response was incomplete. Please click Analyze again.");
+        return;
       }
       if (typeof parsed.overall_score !== "number") {
         setError("Invalid AI response shape.");
