@@ -181,7 +181,7 @@ ${truncatedResume}`;
           model: 'llama-3.1-8b-instant',
           messages: [{ role: 'user', content: prompt }],
           temperature: 0,
-          max_tokens: 1800
+          max_tokens: 1500
         })
       });
       const json = await response.json();
