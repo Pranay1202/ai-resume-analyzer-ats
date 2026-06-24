@@ -69,6 +69,7 @@ function Index() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [jsonError, setJsonError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const analyzerRef = useRef<HTMLDivElement>(null);
 
