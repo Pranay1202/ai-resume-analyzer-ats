@@ -69,6 +69,7 @@ function Index() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [jsonError, setJsonError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const analyzerRef = useRef<HTMLDivElement>(null);
 
@@ -117,11 +118,31 @@ function Index() {
 
   const scrollToAnalyzer = () => analyzerRef.current?.scrollIntoView({ behavior: "smooth" });
 
+  function cleanJsonResponse(rawText: string) {
+    let cleaned = rawText
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim();
+
+    // Remove trailing commas before closing brackets/braces
+    cleaned = cleaned.replace(/,(\s*[\]}])/g, '$1');
+
+    // Find the first { and last } to extract just the JSON object
+    const firstBrace = cleaned.indexOf('{');
+    const lastBrace = cleaned.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1) {
+      cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+    }
+
+    return cleaned;
+  }
+
   const analyze = async () => {
     setError("");
     if (!file || !resumeBase64) { setError("Please upload your resume PDF"); return; }
     if (!GROQ_API_KEY) { setError("Missing VITE_GROQ_API_KEY"); return; }
     setLoading(true);
+    setJsonError(false);
     setResult(null);
     try {
       const base64Data = resumeBase64.includes(",") ? resumeBase64.split(",")[1] : resumeBase64;
@@ -160,7 +181,7 @@ ${truncatedResume}`;
           model: 'llama-3.1-8b-instant',
           messages: [{ role: 'user', content: prompt }],
           temperature: 0,
-          max_tokens: 1800
+          max_tokens: 1500
         })
       });
       const json = await response.json();
@@ -171,13 +192,14 @@ ${truncatedResume}`;
       }
       const text: string | undefined = json?.choices?.[0]?.message?.content;
       if (!text) { setError("Empty response from Groq"); return; }
+      const cleanedText = cleanJsonResponse(text);
       let parsed: AnalysisResult;
       try {
-        parsed = JSON.parse(text);
+        parsed = JSON.parse(cleanedText);
       } catch {
-        const m = text.match(/\{[\s\S]*\}/);
-        if (!m) { setError("Could not parse AI response."); return; }
-        parsed = JSON.parse(m[0]);
+        setJsonError(true);
+        setError("The AI response was incomplete. Please click Analyze again.");
+        return;
       }
       if (typeof parsed.overall_score !== "number") {
         setError("Invalid AI response shape.");
@@ -337,6 +359,15 @@ ${truncatedResume}`;
             {error && (
               <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
                 {error}
+                {jsonError && (
+                  <button
+                    onClick={() => { setJsonError(false); analyze(); }}
+                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 text-base font-semibold text-white shadow-md transition hover:opacity-90"
+                    style={{ background: "#4F46E5" }}
+                  >
+                    Retry Analysis
+                  </button>
+                )}
               </div>
             )}
           </div>
