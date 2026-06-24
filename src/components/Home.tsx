@@ -142,6 +142,7 @@ function Index() {
     if (!file || !resumeBase64) { setError("Please upload your resume PDF"); return; }
     if (!GROQ_API_KEY) { setError("Missing VITE_GROQ_API_KEY"); return; }
     setLoading(true);
+    setJsonError(false);
     setResult(null);
     try {
       const base64Data = resumeBase64.includes(",") ? resumeBase64.split(",")[1] : resumeBase64;
