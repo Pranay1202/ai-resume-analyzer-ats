@@ -359,6 +359,15 @@ ${truncatedResume}`;
             {error && (
               <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
                 {error}
+                {jsonError && (
+                  <button
+                    onClick={() => { setJsonError(false); analyze(); }}
+                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 text-base font-semibold text-white shadow-md transition hover:opacity-90"
+                    style={{ background: "#4F46E5" }}
+                  >
+                    Retry Analysis
+                  </button>
+                )}
               </div>
             )}
           </div>
